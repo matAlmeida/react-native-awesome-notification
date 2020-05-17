@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components/native';
 
-import Notifications from './components/notifications';
+import Notification from './components/notification';
 
 const Container = styled.SafeAreaView`
   flex: 1;
@@ -37,12 +37,11 @@ const App = () => {
         <Text>Oi</Text>
         <ToogleButton onPress={handleToogle} title="toggle" />
         <NotificationContainer>
-          <Notifications
+          <Notification
             text={
               'OH MY MINE OH MY MINE OH MY MINE OH MY MINE OH MY MINE OH MY MINE OH MY MINE OH MY MINE'
             }
             visible={visible}
-            duration={0}
             onClose={() => setVisible(false)}
           />
         </NotificationContainer>

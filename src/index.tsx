@@ -16,6 +16,14 @@ const Text = styled.Text`
 
 const ToogleButton = styled.Button``;
 
+const NotificationContainer = styled.View`
+  flex: 1;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  align-items: center;
+`;
+
 const App = () => {
   const [visible, setVisible] = useState(false);
 
@@ -26,13 +34,18 @@ const App = () => {
   return (
     <>
       <Container>
-        <Notifications
-          text={'OH MY MINE'}
-          visible={visible}
-          onClose={() => setVisible(false)}
-        />
         <Text>Oi</Text>
         <ToogleButton onPress={handleToogle} title="toggle" />
+        <NotificationContainer>
+          <Notifications
+            text={
+              'OH MY MINE OH MY MINE OH MY MINE OH MY MINE OH MY MINE OH MY MINE OH MY MINE OH MY MINE'
+            }
+            visible={visible}
+            duration={0}
+            onClose={() => setVisible(false)}
+          />
+        </NotificationContainer>
       </Container>
     </>
   );

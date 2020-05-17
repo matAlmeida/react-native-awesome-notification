@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Animated, Dimensions } from 'react-native';
+import { Animated, Dimensions, ViewStyle, TextStyle } from 'react-native';
 import styled from 'styled-components/native';
 import {
   PanGestureHandler,
@@ -19,29 +19,36 @@ const Container = styled(Animated.View)`
   padding: 20px;
   background-color: blueviolet;
   border-radius: 5px;
-  flex-direction: row;
-  position: absolute;
-  top: 0;
-  flex: 1;
+  align-items: center;
 `;
 
-const Text = styled.Text``;
+const Text = styled.Text`
+  color: #fff;
+`;
 
-type NotificationsProp = {
-  text: string;
-  visible: boolean;
+type NotificationProp = {
+  text?: string;
+  visible?: boolean;
   onClose?: (value?: any) => any;
   duration?: number;
+  children?: React.ReactChildren;
+  topOffset?: number;
+  containerStyle?: ViewStyle;
+  textStyle?: TextStyle;
 };
 
 const SCREEN_WIDTH = Dimensions.get('screen').width;
 
-function Notifications({
+function Notification({
   text,
-  visible,
+  visible = true,
   onClose,
   duration = 2500,
-}: NotificationsProp) {
+  children,
+  topOffset = 40,
+  containerStyle = {},
+  textStyle = {},
+}: NotificationProp) {
   const [translationY] = useState(() => new Animated.Value(0));
   const [translationX] = useState(() => new Animated.Value(0));
   const [velocityX] = useState(() => new Animated.Value(0));
@@ -65,26 +72,31 @@ function Notifications({
     if (isVisible) {
       translationX.setValue(0);
       sendDown(translationY).start();
-
-      if (duration) {
-        createDurationTimeout();
-      }
+      createDurationTimeout();
     } else {
       sendUp(translationY).start();
     }
   }, [isVisible]);
 
   const createDurationTimeout = () => {
-    const id = setTimeout(() => {
-      sendUp(translationY).start(() => {
-        setVisible(false);
-        if (onClose) {
-          onClose();
-        }
-      });
-    }, duration);
+    if (duration) {
+      const id = setTimeout(() => {
+        sendUp(translationY).start(() => {
+          setVisible(false);
+          if (onClose) {
+            onClose();
+          }
+        });
+      }, duration);
 
-    timeoutRef.current = id;
+      timeoutRef.current = id;
+    }
+  };
+
+  const cleanDurationTimeout = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
   };
 
   const handleStateChange = ({
@@ -95,11 +107,8 @@ function Notifications({
       const swipeVelocity = velocityX.__getValue();
 
       if (swipeSize > SCREEN_WIDTH / 2 || swipeVelocity > 1000) {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
+        cleanDurationTimeout();
         sendOutScreenRight(translationX).start(() => {
-          translationX.setValue(0);
           if (onClose) {
             onClose();
           }
@@ -109,16 +118,14 @@ function Notifications({
         springBackAnimation(translationX).start();
       }
     } else if (nativeEvent.state === State.ACTIVE) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      cleanDurationTimeout();
     }
   };
 
   const swipeTranslation = {
     translateY: translationY.interpolate({
       inputRange: [0, 1],
-      outputRange: [0, 50],
+      outputRange: [0, topOffset],
     }),
     translateX: translationX.interpolate({
       inputRange: [-SCREEN_WIDTH, SCREEN_WIDTH],
@@ -130,11 +137,11 @@ function Notifications({
     <PanGestureHandler
       onGestureEvent={onPanGestureEvent}
       onHandlerStateChange={handleStateChange}>
-      <Container style={swipeTranslation}>
-        <Text>{text}</Text>
+      <Container style={{ ...containerStyle, ...swipeTranslation }}>
+        {text ? <Text style={{ ...textStyle }}>{text}</Text> : children}
       </Container>
     </PanGestureHandler>
   ) : null;
 }
 
-export default Notifications;
+export default Notification;
